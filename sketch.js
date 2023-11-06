@@ -16,15 +16,28 @@ const numCircles = 6;
 const circleSizeRatios = [150, 85, 45, 25, 17, 9];
 
 const circles = [];
+let circolor;
+let bgColors, FirstColor, secondColor, thirdColor, fifthColor, smallestColor;
 
 function setup() {
   createCanvas(windowWidth, windowHeight)
   rateX = width / 550.0;
   rateY = height / 550.0;
+  background(60, 80, 110)
 
-  for (let i = 0; i < numCircles; i++) {
-    circleColors.push(color(random(255), random(255), random(255)));
-  }
+  bgColors = [
+    color(200, 230, 241), color(250, 158, 7), color(252, 238, 242),
+    color(252, 191, 49), color(207, 241, 242), color(248, 197, 56), color(252, 191, 49),
+    color(221, 254, 254), color(250, 158, 7), color(252, 238, 242), color(254, 247, 243),
+    color(252, 238, 242), color(252, 191, 49), color(241, 224, 76), color(250, 158, 7),
+    color(252, 238, 242), color(207, 241, 242)
+  ];
+
+  FirstColor = random(bgColors); // Pick a random color from bgColors
+  secondColor = color(181, 77, 162);
+  thirdColor = color(71, 83, 63);
+  fifthColor = random() > 0.5 ? color(34, 151, 66) : color(240, 67, 32);
+  smallestColor = color(183, 190, 189);
 
   artwork = new Artwork(positions, CirBgColor, ShapeColor)
 }
@@ -36,11 +49,10 @@ function windowResized() {
   // Update the canvas width and height variables
   rateX = width / 550.0;
   rateY = height / 550.0;
-  background(60, 80, 110);
 }
 
 function draw() {
-  background(60, 80, 110)
+  background(60, 80, 110);
 
   push();
   scale(rateX, rateY);
@@ -61,11 +73,19 @@ function draw() {
         circles.splice(circles.indexOf(overlappingCircle), 1);
       }
 
-      if (isOffScreen()) {
-        circleFilling = false;
-      }
-
-      fill(circleColors[i]);
+      if (i === 0) {
+      fill(FirstColor);
+    } else if (i === 1) {
+      fill(secondColor);
+    } else if (i === 2) {
+      fill(thirdColor);
+    } else if (i === 3) {
+      fill(color(0)); // Black
+    } else if (i === 4) {
+      fill(fifthColor);
+    } else if (i === 5) {
+      fill(smallestColor);
+    }
       circle(mouseX, mouseY, circleSizes[i]);
     }
   }
@@ -76,27 +96,40 @@ function draw() {
 }
 
 function getOverlappingCircle(index) {
-  for (const c of circles) {
+  for (let i = circles.length - 1; i >= 0; i--) {
+    const c = circles[i];
     if (dist(c.x, c.y, mouseX, mouseY) < circleSizes[index] / 2 + c.size / 2 + 2) {
-      return c;
+      circles.splice(i, 1); // 删除旧圆
     }
   }
-
-  return undefined;
-}
-
-function isOffScreen() {
-  return mouseX < circleSizes[0] / 2 ||
-    mouseX > width - circleSizes[0] / 2 ||
-    mouseY < circleSizes[0] / 2 ||
-    mouseY > height - circleSizes[0] / 2;
+  return undefined; // 不返回任何重叠的圆
 }
 
 function mousePressed() {
   circleSizes = [0, 0, 0, 0, 0, 0];
   circleColors = [];
   for (let i = 0; i < numCircles; i++) {
-    circleColors.push(color(random(255), random(255), random(255)));
+    if (i === 0) {
+      fill(FirstColor);
+      circolor=FirstColor;
+    } else if (i === 1) {
+      fill(secondColor);
+      circolor=secondColor;
+    } else if (i === 2) {
+      fill(thirdColor);
+      circolor=thirdColor;
+    } else if (i === 3) {
+      fill(color(0)); // Black
+      circolor=color(0);
+    } else if (i === 4) {
+      fill(fifthColor);
+      circolor=fifthColor;
+    } else if (i === 5) {
+      fill(smallestColor);
+      circolor=smallestColor;
+    }
+    
+  circleColors.push(circolor);
   }
   circleFilling = true;
 }
