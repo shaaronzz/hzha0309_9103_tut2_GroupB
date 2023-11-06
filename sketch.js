@@ -9,13 +9,23 @@ let curve_25 = []
 let rateX = 1;
 let rateY = 1;
 
+let circleFilling = false;
+let circleSizes = [0, 0, 0, 0, 0, 0];
+let circleColors = [];
+const numCircles = 6;
+const circleSizeRatios = [150, 85, 45, 25, 17, 9];
+
+const circles = [];
+
 function setup() {
   createCanvas(windowWidth, windowHeight)
   rateX = width / 550.0;
   rateY = height / 550.0;
-  noCursor()
-  background(60, 80, 110)
-  initArtworkData()
+
+  for (let i = 0; i < numCircles; i++) {
+    circleColors.push(color(random(255), random(255), random(255)));
+  }
+
   artwork = new Artwork(positions, CirBgColor, ShapeColor)
 }
 
@@ -28,11 +38,91 @@ function windowResized() {
   rateY = height / 550.0;
   background(60, 80, 110);
 }
+
 function draw() {
+  background(60, 80, 110)
+
   push();
   scale(rateX, rateY);
   artwork.display()
   pop();
+
+  for (let i = 0; i < numCircles; i++) {
+    if (circleFilling && circleSizes[i] < circleSizeRatios[i]) {
+      circleSizes[i] += 2;
+    }
+  }
+
+  for (let i = 0; i < numCircles; i++) {
+    if (circleFilling) {
+      const overlappingCircle = getOverlappingCircle(i);
+      if (overlappingCircle) {
+        circleFilling = false;
+        circles.splice(circles.indexOf(overlappingCircle), 1);
+      }
+
+      if (isOffScreen()) {
+        circleFilling = false;
+      }
+
+      fill(circleColors[i]);
+      circle(mouseX, mouseY, circleSizes[i]);
+    }
+  }
+
+  for (const c of circles) {
+    c.draw();
+  }
+}
+
+function getOverlappingCircle(index) {
+  for (const c of circles) {
+    if (dist(c.x, c.y, mouseX, mouseY) < circleSizes[index] / 2 + c.size / 2 + 2) {
+      return c;
+    }
+  }
+
+  return undefined;
+}
+
+function isOffScreen() {
+  return mouseX < circleSizes[0] / 2 ||
+    mouseX > width - circleSizes[0] / 2 ||
+    mouseY < circleSizes[0] / 2 ||
+    mouseY > height - circleSizes[0] / 2;
+}
+
+function mousePressed() {
+  circleSizes = [0, 0, 0, 0, 0, 0];
+  circleColors = [];
+  for (let i = 0; i < numCircles; i++) {
+    circleColors.push(color(random(255), random(255), random(255)));
+  }
+  circleFilling = true;
+}
+
+function mouseReleased() {
+  if (circleFilling) {
+    for (let i = 0; i < numCircles; i++) {
+      circles.push(new Circle(mouseX, mouseY, circleSizes[i], circleColors[i]));
+    }
+  }
+  circleFilling = false;
+}
+
+class Circle {
+
+  constructor(x, y, size, color) {
+    this.x = x;
+    this.y = y;
+    this.size = size;
+    this.color = color;
+  }
+
+  draw() {
+    fill(this.color);
+    circle(this.x, this.y, this.size);
+  }
 }
 
 // defines an Artwork class. This class is responsible for generating 
@@ -56,7 +146,7 @@ class Artwork {
     for (let i = 0; i < this.positions.length; i++) {
       let x = this.positions[i].xPos;
       let y = this.positions[i].yPos;
-      this.drawCircle(x, y, i); //draw circles at the positions specified by the positions array
+      //this.drawCircle(x, y, i); //draw circles at the positions specified by the positions array
       this.drawDotsIn(x, y, i); //draw dots inside the circles
       this.drawRings(x, y, i); //draws rings inside the circles
       this.drawZipLine(x, y, i); //draws lines connecting various points
